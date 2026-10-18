@@ -1,0 +1,38 @@
+sequenceDiagram
+  autonumber
+  actor P as Physician
+  participant O as OrderDetail
+  participant A as Auth<br/>Middleware
+  participant C as Result<br/>Controller
+  participant S as Result<br/>Service
+  participant M as OrderItem<br/>StateMachine
+  participant OS as Order<br/>Service
+  participant N as Notification<br/>Service
+  participant Au as Audit<br/>Service
+  participant DB as Database
+  P->>O: click Approve
+  O->>A: POST /review
+  A->>C: forward (role ok)
+  C->>S: review(itemId, decision)
+  S->>DB: lock + load OrderItem
+  S->>S: check ordering physician
+  S->>M: assertTransition()
+  alt decision = approve
+    S->>DB: stamp ResultVersion released
+    S->>DB: update OrderItem RELEASED
+    S->>Au: record(RELEASED)
+    S->>N: notify(RESULT_RELEASED)
+    S->>OS: maybeAutoClose(orderId)
+    OS->>DB: read item statuses
+    opt every test released or cancelled
+      OS->>DB: update Order CLOSED
+      OS->>Au: record(AUTO_CLOSED)
+    end
+  else decision = retest
+    S->>DB: update IN_PROCESSING + reason
+    S->>N: notify(RETEST_REQUESTED)
+  end
+  Au->>DB: insert AuditEntry
+  S-->>C: item status
+  C-->>O: 200 OK
+  O-->>P: show Released

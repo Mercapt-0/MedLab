@@ -1,0 +1,42 @@
+{
+  "name": "medlab-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MedLab automated test suite - unit + API tests mapped to SRS requirements",
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:unit": "jest --runInBand unit",
+    "test:api": "jest --runInBand api",
+    "coverage": "jest --runInBand --coverage",
+    "e2e": "node e2e/workflow.e2e.mjs"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "playwright": "^1.48.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "rootDir": "..",
+    "roots": [
+      "<rootDir>/tests"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/helpers/env.js"
+    ],
+    "globalSetup": "<rootDir>/tests/helpers/globalSetup.js",
+    "testTimeout": 30000,
+    "collectCoverageFrom": [
+      "backend/src/**/*.js",
+      "!backend/src/server.js",
+      "!backend/src/db/seed.js",
+      "!backend/src/db/migrate.js"
+    ],
+    "coverageDirectory": "<rootDir>/tests/coverage",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/"
+    ],
+    "coverageProvider": "v8"
+  }
+}
